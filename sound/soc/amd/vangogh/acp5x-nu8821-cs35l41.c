@@ -77,9 +77,19 @@ static const unsigned int rates[] = {
 	44100, 48000,
 };
 
+static const unsigned int nau8821_rates[] = {
+	44100,48000,
+};
+
 static const struct snd_pcm_hw_constraint_list constraints_rates = {
 	.count = ARRAY_SIZE(rates),
 	.list  = rates,
+	.mask = 0,
+};
+
+static const struct snd_pcm_hw_constraint_list constraints_nau8821_rates = {
+	.count = ARRAY_SIZE(nau8821_rates),
+	.list  = nau8821_rates,
 	.mask = 0,
 };
 
@@ -107,7 +117,7 @@ static int acp5x_8821_startup(struct snd_pcm_substream *substream)
 	snd_pcm_hw_constraint_list(runtime, 0, SNDRV_PCM_HW_PARAM_CHANNELS,
 				   &constraints_channels);
 	snd_pcm_hw_constraint_list(runtime, 0, SNDRV_PCM_HW_PARAM_RATE,
-				   &constraints_rates);
+				   &constraints_nau8821_rates);
 	return 0;
 }
 
@@ -121,11 +131,11 @@ static int acp5x_nau8821_hw_params(struct snd_pcm_substream *substream,
 						   ACP5X_NUVOTON_CODEC_DAI);
 	int ret;
 
-	ret = snd_soc_dai_set_sysclk(codec_dai, NAU8821_CLK_FLL_FS, 0,
+	ret = snd_soc_dai_set_sysclk(codec_dai, NAU8821_CLK_FLL_BLK, 0,
 				     SND_SOC_CLOCK_IN);
 	if (ret < 0)
 		dev_err(card->dev, "can't set FS clock %d\n", ret);
-	ret = snd_soc_dai_set_pll(codec_dai, 0, 0, params_rate(params),
+	ret = snd_soc_dai_set_pll(codec_dai, 0, 0, snd_soc_params_to_bclk(params),
 				  params_rate(params) * 256);
 	if (ret < 0)
 		dev_err(card->dev, "can't set FLL: %d\n", ret);
@@ -179,7 +189,7 @@ static int acp5x_cs35l41_hw_params(struct snd_pcm_substream *substream,
 			ret = snd_soc_component_set_sysclk(codec_dai->component,
 							   0, 0, bclk_val, SND_SOC_CLOCK_IN);
 			if (ret < 0) {
-				pr_err("failed to set sysclk for CS35l41 dai\n");
+		dev_err(card->dev, "failed to set sysclk for CS35l41 dai\n");
 				return ret;
 			}
 		}
@@ -267,7 +277,7 @@ static int platform_clock_control(struct snd_soc_dapm_widget *w,
 
 	if (SND_SOC_DAPM_EVENT_OFF(event)) {
 		ret = snd_soc_dai_set_sysclk(codec_dai, NAU8821_CLK_INTERNAL,
-					     0, SND_SOC_CLOCK_IN);
+			0, SND_SOC_CLOCK_IN);
 		if (ret < 0) {
 			dev_err(card->dev, "set sysclk err = %d\n", ret);
 			return -EIO;
@@ -294,8 +304,9 @@ static const struct snd_soc_dapm_route acp5x_8821_audio_route[] = {
 	/* HP jack connectors - unknown if we have jack detection */
 	{ "Headphone", NULL, "HPOL" },
 	{ "Headphone", NULL, "HPOR" },
-	{ "Headset Mic", NULL, "MICL" },
-	{ "Int Mic", NULL, "DMIC" },
+	{ "MICL", NULL, "Headset Mic" },
+	{ "MICR", NULL, "Headset Mic" },
+	{ "DMIC", NULL, "Int Mic" },
 
 	{ "Headphone", NULL, "Platform Clock" },
 	{ "Headset Mic", NULL, "Platform Clock" },
@@ -336,10 +347,9 @@ static int acp5x_probe(struct platform_device *pdev)
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
 	if (ret) {
-		dev_err(&pdev->dev,
-			"snd_soc_register_card(%s) failed: %d\n",
-			acp5x_card.name, ret);
-		return ret;
+		return dev_err_probe(&pdev->dev, ret,
+				     "snd_soc_register_card(%s) failed\n",
+				     acp5x_card.name);
 	}
 	return 0;
 }
