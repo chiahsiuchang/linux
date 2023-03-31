@@ -1595,13 +1595,4 @@ config VIDEO_THS7303
 
 endmenu
 
-config VIDEO_ANX7580
-  tristate "ANX7580 DP to MIPI bridge"
-  depends on I2C
-  help
-    Analogix ANX7580 DP to MIPI Bridge Interface.
-
-    To compile this driver as a module, choose M here: the
-    module will be called anx7580.
-
 endif # VIDEO_DEV
