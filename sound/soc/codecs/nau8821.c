@@ -1701,7 +1701,7 @@ static int nau8821_i2c_probe(struct i2c_client *i2c)
 	struct device *dev = &i2c->dev;
 	struct nau8821 *nau8821 = dev_get_platdata(&i2c->dev);
 	int ret, value;
-
+printk("[seven] k6.0 20230328 18:08\n");
 	if (!nau8821) {
 		nau8821 = devm_kzalloc(dev, sizeof(*nau8821), GFP_KERNEL);
 		if (!nau8821)
@@ -1735,6 +1735,11 @@ static int nau8821_i2c_probe(struct i2c_client *i2c)
 	return ret;
 }
 
+static void nau8821_i2c_remove(struct i2c_client *i2c_client)
+{
+	struct nau8821 *nau8821 = i2c_get_clientdata(i2c_client);
+	devm_free_irq(nau8821->dev, nau8821->irq,nau8821);
+}
 static const struct i2c_device_id nau8821_i2c_ids[] = {
 	{ "nau8821", 0 },
 	{ }
@@ -1765,6 +1770,7 @@ static struct i2c_driver nau8821_driver = {
 	},
 	.probe_new = nau8821_i2c_probe,
 	.id_table = nau8821_i2c_ids,
+	.remove = nau8821_i2c_remove,
 };
 module_i2c_driver(nau8821_driver);
 
