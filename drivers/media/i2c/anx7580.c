@@ -745,37 +745,37 @@ static void sequence_1st(struct device *dev)
 	anx7580_write_reg_store(dev, NULL, "03 017 78", 0);
 	
 	anx7580_write_reg_store(dev, NULL, "03 018 17", 0);
-	anx7580_write_reg_store(dev, NULL, "03 019 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 01A 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 01B 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 01C 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 01D 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 01E 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 01F 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 020 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 021 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 022 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 019 3C", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01A 71", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01B AE", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01C 51", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01D 3C", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01E B9", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01F 23", 0);
+	anx7580_write_reg_store(dev, NULL, "03 020 0C", 0);
+	anx7580_write_reg_store(dev, NULL, "03 021 50", 0);
+	anx7580_write_reg_store(dev, NULL, "03 022 54", 0);
 	anx7580_write_reg_store(dev, NULL, "03 023 00", 0);
 	
 	anx7580_write_reg_store(dev, NULL, "03 024 00", 0);
 	anx7580_write_reg_store(dev, NULL, "03 025 00", 0);
 	anx7580_write_reg_store(dev, NULL, "03 026 01", 0);
-	anx7580_write_reg_store(dev, NULL, "03 027 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 027 01", 0);
 	anx7580_write_reg_store(dev, NULL, "03 028 01", 0);
-	anx7580_write_reg_store(dev, NULL, "03 029 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 029 01", 0);
 	anx7580_write_reg_store(dev, NULL, "03 02A 01", 0);
-	anx7580_write_reg_store(dev, NULL, "03 02B 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 02B 01", 0);
 	anx7580_write_reg_store(dev, NULL, "03 02C 01", 0);
-	anx7580_write_reg_store(dev, NULL, "03 02D 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 02D 01", 0);
 	anx7580_write_reg_store(dev, NULL, "03 02E 01", 0);
-	anx7580_write_reg_store(dev, NULL, "03 02F 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 02F 01", 0);
 	
 	anx7580_write_reg_store(dev, NULL, "03 030 01", 0);
-	anx7580_write_reg_store(dev, NULL, "03 031 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 031 01", 0);
 	anx7580_write_reg_store(dev, NULL, "03 032 01", 0);
-	anx7580_write_reg_store(dev, NULL, "03 033 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 033 01", 0);
 	anx7580_write_reg_store(dev, NULL, "03 034 01", 0);
-	anx7580_write_reg_store(dev, NULL, "03 035 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 035 01", 0);
 	anx7580_write_reg_store(dev, NULL, "03 036 08", 0);
 	anx7580_write_reg_store(dev, NULL, "03 037 34", 0);
 	anx7580_write_reg_store(dev, NULL, "03 038 20", 0);
@@ -818,22 +818,22 @@ static void sequence_1st(struct device *dev)
 	anx7580_write_reg_store(dev, NULL, "03 05A 00", 0);
 	anx7580_write_reg_store(dev, NULL, "03 05B 00", 0);
 	anx7580_write_reg_store(dev, NULL, "03 05C 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 05D 10", 0);
+	anx7580_write_reg_store(dev, NULL, "03 05D FD", 0);
 	anx7580_write_reg_store(dev, NULL, "03 05E 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 05F 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 05F 2D", 0);
 	
-	anx7580_write_reg_store(dev, NULL, "03 060 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 061 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 062 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 063 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 060 5A", 0);
+	anx7580_write_reg_store(dev, NULL, "03 061 76", 0);
+	anx7580_write_reg_store(dev, NULL, "03 062 77", 0);
+	anx7580_write_reg_store(dev, NULL, "03 063 0E", 0);
 	anx7580_write_reg_store(dev, NULL, "03 064 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 065 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 066 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 067 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 068 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 069 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 06A 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 06B 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 065 0A", 0);
+	anx7580_write_reg_store(dev, NULL, "03 066 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 067 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 068 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 069 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 06A 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 06B 20", 0);
 	
 	anx7580_write_reg_store(dev, NULL, "03 06C 00", 0);
 	anx7580_write_reg_store(dev, NULL, "03 06D 00", 0);
@@ -854,9 +854,30 @@ static void sequence_1st(struct device *dev)
 	anx7580_write_reg_store(dev, NULL, "03 07B 00", 0);
 	anx7580_write_reg_store(dev, NULL, "03 07C 00", 0);
 	anx7580_write_reg_store(dev, NULL, "03 07D 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 07E 00", 0);
-	anx7580_write_reg_store(dev, NULL, "03 07F 7D", 0);
+	anx7580_write_reg_store(dev, NULL, "03 07E 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 07F C7", 0);
 	
+	anx7580_write_reg_store(dev, NULL, "03 080 02", 0);
+	anx7580_write_reg_store(dev, NULL, "03 081 03", 0);
+	anx7580_write_reg_store(dev, NULL, "03 082 0B", 0);
+	anx7580_write_reg_store(dev, NULL, "03 083 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 084 E6", 0);
+	anx7580_write_reg_store(dev, NULL, "03 085 06", 0);
+	anx7580_write_reg_store(dev, NULL, "03 086 03", 0);
+	anx7580_write_reg_store(dev, NULL, "03 087 01", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 088 6A", 0);
+	anx7580_write_reg_store(dev, NULL, "03 089 6A", 0);
+	anx7580_write_reg_store(dev, NULL, "03 08A 03", 0);
+	anx7580_write_reg_store(dev, NULL, "03 08B 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 08C 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 08D 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 08E 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 08F 00", 0);
+
+	anx7580_write_reg_store(dev, NULL, "03 0FF 29", 0);
+
+
 	//panel parameterss setting
 	
 	//SW_H_ACTIVE 800
@@ -907,8 +928,8 @@ static void sequence_1st(struct device *dev)
 	//M_VALUE_MULTIPLY = 123 (*1.23)
 	anx7580_write_reg_store(dev, NULL, "01 09F 7B", 0);
 	
-	//SET_ACCURATE_M_VALUE
-	anx7580_write_reg_store(dev, NULL, "01 092 08", 0);
+	//AMD_OLED_BACKLIGHT_SUPPORT (bit6), SET_ACCURATE_M_VALUE (bit3)
+	anx7580_write_reg_store(dev, NULL, "01 092 48", 0);
 	
 	//MISC_NOTIFY_OCM0, MCU load done, panel info setting done
 	anx7580_write_reg_store(dev, NULL, "01 09E C0", 0);
