@@ -410,10 +410,29 @@ static int nau8821_left_adc_event(struct snd_soc_dapm_widget *w,
 		msleep(125);
 		regmap_update_bits(nau8821->regmap, NAU8821_R01_ENA_CTRL,
 			NAU8821_EN_ADCL, NAU8821_EN_ADCL);
+		regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
+			NAU8821_HP_BOOST_DISCHRG_EN,
+			NAU8821_HP_BOOST_DISCHRG_EN);
+		regmap_update_bits(nau8821->regmap, NAU8821_R6B_PGA_MUTE,
+			NAU8821_MUTE_MICNL_MASK, NAU8821_MUTE_MICNL_MASK);
+		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
+			NAU8821_MICBIAS_LOWNOISE_EN,
+			NAU8821_MICBIAS_LOWNOISE_EN);
+		regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
+			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN,
+			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN);
 		break;
 	case SND_SOC_DAPM_POST_PMD:
 		regmap_update_bits(nau8821->regmap,
 			NAU8821_R01_ENA_CTRL, NAU8821_EN_ADCL, 0);
+		regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
+			NAU8821_HP_BOOST_DISCHRG_EN, 0);
+		regmap_update_bits(nau8821->regmap, NAU8821_R6B_PGA_MUTE,
+			NAU8821_MUTE_MICNL_MASK, 0);
+		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
+			NAU8821_MICBIAS_LOWNOISE_EN, 0);
+		regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
+			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN, 0);
 		break;
 	default:
 		return -EINVAL;
@@ -434,10 +453,29 @@ static int nau8821_right_adc_event(struct snd_soc_dapm_widget *w,
 		msleep(125);
 		regmap_update_bits(nau8821->regmap, NAU8821_R01_ENA_CTRL,
 			NAU8821_EN_ADCR, NAU8821_EN_ADCR);
+		regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
+			NAU8821_HP_BOOST_DISCHRG_EN,
+			NAU8821_HP_BOOST_DISCHRG_EN);
+		regmap_update_bits(nau8821->regmap, NAU8821_R6B_PGA_MUTE,
+			NAU8821_MUTE_MICNL_MASK, NAU8821_MUTE_MICNL_MASK);
+		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
+			NAU8821_MICBIAS_LOWNOISE_EN,
+			NAU8821_MICBIAS_LOWNOISE_EN);
+		regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
+			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN,
+			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN);
 		break;
 	case SND_SOC_DAPM_POST_PMD:
 		regmap_update_bits(nau8821->regmap,
 			NAU8821_R01_ENA_CTRL, NAU8821_EN_ADCR, 0);
+		regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
+			NAU8821_HP_BOOST_DISCHRG_EN, 0);
+		regmap_update_bits(nau8821->regmap, NAU8821_R6B_PGA_MUTE,
+			NAU8821_MUTE_MICNL_MASK, 0);
+		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
+			NAU8821_MICBIAS_LOWNOISE_EN, 0);
+		regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
+			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN, 0);
 		break;
 	default:
 		return -EINVAL;
@@ -1701,7 +1739,7 @@ static int nau8821_i2c_probe(struct i2c_client *i2c)
 	struct device *dev = &i2c->dev;
 	struct nau8821 *nau8821 = dev_get_platdata(&i2c->dev);
 	int ret, value;
-printk("[seven] k6.0 20230328 18:08\n");
+	printk("[seven] 20230421\n");
 	if (!nau8821) {
 		nau8821 = devm_kzalloc(dev, sizeof(*nau8821), GFP_KERNEL);
 		if (!nau8821)
