@@ -13,6 +13,7 @@
 #include <linux/workqueue.h>
 #include <linux/delay.h>
 #include <linux/interrupt.h>
+#include <linux/delay.h>
 
 #include "anx7580_regs.h"
 
@@ -637,18 +638,17 @@ static int anx7580_probe(struct i2c_client *client,
 	}
 
 	dev_set_drvdata( &client->dev, anx );
-    anx->client = client;
+	anx->client = client;
 
-    // anx7580 is powered on by bios, so we assume ocm wait period is complete
-    if ( anx7580_check_ocm_status(anx) )
-    {
-        // OCM load done
-        // Read Chip ID
-        anx7580_read_chip_id(anx);
+	// anx7580 is powered on by bios, so we assume ocm wait period is complete
+	if ( anx7580_check_ocm_status(anx) ) {
+		// OCM load done
+		// Read Chip ID
+		anx7580_read_chip_id(anx);
 		// store current dp vtotal for future mode changes
 		anx7580_get_dp_vtotal(anx, &anx->dp_vtotal);
 		pr_info("anx7580: initial dp vtotal %d\n", anx->dp_vtotal);
-    }
+	}
 
 	// setup irq
 	irq = acpi_dev_gpio_irq_get( ACPI_COMPANION(&client->dev), 0 );
@@ -687,18 +687,403 @@ static void anx7580_remove(struct i2c_client *client)
 	kfree(data);
 }
 
-static int anx7580_runtime_suspend(struct device *dev)
+static int anx7580_suspend_late(struct device *dev)
 {
+	pr_info("anx7580: %s called\n", __func__);
 	return 0;
 }
 
-static int anx7580_runtime_resume(struct device *dev)
+static void sequence_1st(struct device *dev)
 {
+	pr_info("anx7580: %s enter\n", __func__);
+
+	//panel powanx7580_write_reg_store4 on sequence
+	
+	//1.8V anx7580_write_reg_store4ovide to ANX7580
+	//wait >= 1ms
+	//1.0V anx7580_write_reg_store4ovide to ANX7580
+	//wait >= 2ms
+	//CHIP_PWR_UP set to high
+	//wait >= 20ms
+	//RESET set to high
+	//wait >= 10ms
+	
+	//read 01:05, if 01:05 = 0xF0, OCM CRC passed.
+	
+	//power down the panel and analogix mipi while we attempt reinit
+	panel_write_store(dev, NULL, "28 0 0", 0);
+	panel_write_store(dev, NULL, "10 0 0", 0);
+	
+	//set HPD to low 
+	anx7580_write_reg4_store(dev, NULL, "30 028 00", 0);
+	
+	//write EDID without audio block
+	anx7580_write_reg_store(dev, NULL, "03 000 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 001 FF", 0);
+	anx7580_write_reg_store(dev, NULL, "03 002 FF", 0);
+	anx7580_write_reg_store(dev, NULL, "03 003 FF", 0);
+	anx7580_write_reg_store(dev, NULL, "03 004 FF", 0);
+	anx7580_write_reg_store(dev, NULL, "03 005 FF", 0);
+	anx7580_write_reg_store(dev, NULL, "03 006 FF", 0);
+	anx7580_write_reg_store(dev, NULL, "03 007 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 008 59", 0);
+	anx7580_write_reg_store(dev, NULL, "03 009 96", 0);
+	anx7580_write_reg_store(dev, NULL, "03 00A 03", 0);
+	anx7580_write_reg_store(dev, NULL, "03 00B 30", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 00C 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 00D 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 00E 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 00F 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 010 ff", 0);
+	anx7580_write_reg_store(dev, NULL, "03 011 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 012 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 013 04", 0);
+	anx7580_write_reg_store(dev, NULL, "03 014 A5", 0);
+	anx7580_write_reg_store(dev, NULL, "03 015 06", 0);
+	anx7580_write_reg_store(dev, NULL, "03 016 05", 0);
+	anx7580_write_reg_store(dev, NULL, "03 017 78", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 018 17", 0);
+	anx7580_write_reg_store(dev, NULL, "03 019 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01A 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01B 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01C 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01D 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01E 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 01F 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 020 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 021 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 022 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 023 00", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 024 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 025 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 026 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 027 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 028 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 029 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 02A 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 02B 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 02C 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 02D 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 02E 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 02F 00", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 030 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 031 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 032 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 033 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 034 01", 0);
+	anx7580_write_reg_store(dev, NULL, "03 035 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 036 08", 0);
+	anx7580_write_reg_store(dev, NULL, "03 037 34", 0);
+	anx7580_write_reg_store(dev, NULL, "03 038 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 039 48", 0);
+	anx7580_write_reg_store(dev, NULL, "03 03A 31", 0);
+	anx7580_write_reg_store(dev, NULL, "03 03B 00", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 03C 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 03D 50", 0);
+	anx7580_write_reg_store(dev, NULL, "03 03E 14", 0);
+	anx7580_write_reg_store(dev, NULL, "03 03F 08", 0);
+	anx7580_write_reg_store(dev, NULL, "03 040 91", 0);
+	anx7580_write_reg_store(dev, NULL, "03 041 40", 0);
+	anx7580_write_reg_store(dev, NULL, "03 042 64", 0);
+	anx7580_write_reg_store(dev, NULL, "03 043 96", 0);
+	anx7580_write_reg_store(dev, NULL, "03 044 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 045 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 046 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 047 1E", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 048 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 049 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 04A 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 04B FC", 0);
+	anx7580_write_reg_store(dev, NULL, "03 04C 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 04D 41", 0);
+	anx7580_write_reg_store(dev, NULL, "03 04E 4E", 0);
+	anx7580_write_reg_store(dev, NULL, "03 04F 58", 0);
+	anx7580_write_reg_store(dev, NULL, "03 050 37", 0);
+	anx7580_write_reg_store(dev, NULL, "03 051 35", 0);
+	anx7580_write_reg_store(dev, NULL, "03 052 33", 0);
+	anx7580_write_reg_store(dev, NULL, "03 053 30", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 054 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 055 55", 0);
+	anx7580_write_reg_store(dev, NULL, "03 056 0A", 0);
+	anx7580_write_reg_store(dev, NULL, "03 057 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 058 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 059 20", 0);
+	anx7580_write_reg_store(dev, NULL, "03 05A 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 05B 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 05C 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 05D 10", 0);
+	anx7580_write_reg_store(dev, NULL, "03 05E 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 05F 00", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 060 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 061 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 062 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 063 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 064 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 065 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 066 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 067 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 068 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 069 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 06A 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 06B 00", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 06C 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 06D 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 06E 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 06F 10", 0);
+	anx7580_write_reg_store(dev, NULL, "03 070 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 071 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 072 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 073 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 074 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 075 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 076 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 077 00", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "03 078 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 079 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 07A 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 07B 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 07C 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 07D 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 07E 00", 0);
+	anx7580_write_reg_store(dev, NULL, "03 07F 7D", 0);
+	
+	//panel parameterss setting
+	
+	//SW_H_ACTIVE 800
+	anx7580_write_reg_store(dev, NULL, "01 0A0 20", 0);
+	anx7580_write_reg_store(dev, NULL, "01 0A1 03", 0);
+	
+	//SW_HFP 276
+	anx7580_write_reg_store(dev, NULL, "01 0A2 14", 0);
+	anx7580_write_reg_store(dev, NULL, "01 0A3 01", 0);
+	
+	//SW_HSYNC 8
+	anx7580_write_reg_store(dev, NULL, "01 0A4 08", 0);
+	anx7580_write_reg_store(dev, NULL, "01 0A5 00", 0);
+	
+	//SW_HBP 44
+	anx7580_write_reg_store(dev, NULL, "01 0A6 2C", 0);
+	anx7580_write_reg_store(dev, NULL, "01 0A7 00", 0);
+	
+	//SW_V_ACTIVE 1280
+	anx7580_write_reg_store(dev, NULL, "01 0A8 00", 0);
+	anx7580_write_reg_store(dev, NULL, "01 0A9 05", 0);
+	
+	//SW_VFP 9
+	anx7580_write_reg_store(dev, NULL, "01 0AA 09", 0);
+	anx7580_write_reg_store(dev, NULL, "01 0AB 00", 0);
+	
+	//SW_VSYNC 1
+	anx7580_write_reg_store(dev, NULL, "01 0AC 01", 0);
+	anx7580_write_reg_store(dev, NULL, "01 0AD 00", 0);
+	
+	//SW_VBP 22
+	anx7580_write_reg_store(dev, NULL, "01 0AE 16", 0);
+	anx7580_write_reg_store(dev, NULL, "01 0AF 00", 0);
+	
+	//SW_PANEL_FRAME_RATE, 90Hz
+	anx7580_write_reg_store(dev, NULL, "01 09D 5A", 0);
+	
+	//SW_PANEL_INFO_0, 1 panel, 1 MIPI port, 4 MIPI lane per port, Video one in one out mode
+	anx7580_write_reg_store(dev, NULL, "01 0B0 0C", 0);
+	
+	//SW_PANEL_INFO_1, Set DPHY timing, Burst mode, no DSC, Display left
+	anx7580_write_reg_store(dev, NULL, "01 0B1 48", 0);
+	
+	//for OLED panel, set 500 nits to OCM first, 500 nits = 0x7FF
+	anx7580_write_reg_store(dev, NULL, "01 0B9 FF", 0);
+	anx7580_write_reg_store(dev, NULL, "01 0BA 07", 0);
+	
+	//M_VALUE_MULTIPLY = 123 (*1.23)
+	anx7580_write_reg_store(dev, NULL, "01 09F 7B", 0);
+	
+	//SET_ACCURATE_M_VALUE
+	anx7580_write_reg_store(dev, NULL, "01 092 08", 0);
+	
+	//MISC_NOTIFY_OCM0, MCU load done, panel info setting done
+	anx7580_write_reg_store(dev, NULL, "01 09E C0", 0);
+	//sleep 0.200
+	msleep(200);
+
+	pr_info("anx7580: %s exit\n", __func__);
+}
+
+static void sequence_2nd(struct device *dev)
+{
+	pr_info("anx7580: %s enter\n", __func__);
+
+	msleep(1000);
+
+	//# if 01:90 bit1 = 1 = video stable
+	//# set panel DCS command set
+	//#################################### ANX7580 interrupt handling
+	//get interrupt event
+	//anx7580_read_reg_show(dev, NULL, "01 90 1");
+	//anx7580_read_reg_show(dev, NULL, "01 91 1");
+	//clear interrupt
+	anx7580_write_reg_store(dev, NULL, "A0 044 40", 0);
+	anx7580_write_reg_store(dev, NULL, "01 090 00", 0);
+	anx7580_write_reg_store(dev, NULL, "01 091 00", 0);
+	
+	//#################################### interrupt event = "video stable"
+	//#
+	//# DATASHORT_DCS_WRITE_1 		  0x15
+	//# DATASHORT_DCS_WRITE_LONG		  0x39
+	//#
+	//####################################
+	//Panel power up ###
+	//power on panel
+	
+	//LP mode ###
+	anx7580_write_reg_store(dev, NULL, "a0 10 0", 0);
+	anx7580_write_reg_store(dev, NULL, "a0 0 3F", 0);
+	anx7580_write_reg_store(dev, NULL, "a0 14 0", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "c0 34 01", 0);
+	
+	//select port first (0xC0)
+	anx7580_write_reg_store(dev, NULL, "08 19 10", 0);
+	
+	//panel power on sequence, please refer to Samsung datasheet
+	//Panel HW reset ###
+	
+	//send DCS "panel initial"
+	
+	//Bulldog initial code
+	
+	//Unlock
+	anx7580_write_reg4_store(dev, NULL, "C0 70 005A5AF0", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 005A5AF1", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	
+	//anx7580_write_reg_store4equency Setting
+	anx7580_write_reg4_store(dev, NULL, "C0 70 004700D0", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0022B015", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0097BD15", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 002CB015", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 AA2AAAB7", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 0000000A", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000539", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0007F715", 0);
+	
+	//Lock
+	anx7580_write_reg4_store(dev, NULL, "C0 70 00A5A5F0", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 00A5A5F1", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	
+	//Unlock
+	anx7580_write_reg4_store(dev, NULL, "C0 70 005A5AF0", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 005A5AF1", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	
+	//Sleep Out Setting
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0029B015", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0000BD15", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0007EF15", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0004B015", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0004EF15", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0008B015", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 0049F315", 0);
+	
+	//Lock
+	anx7580_write_reg4_store(dev, NULL, "C0 70 00A5A5F0", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 00A5A5F1", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	
+	//SLP OUT
+	//SSD_Number(0x01);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00001105", 0);
+	
+	//Delay 180 ms;
+	msleep(180);
+	//sleep 0.180
+	
+	//Unlock
+	anx7580_write_reg4_store(dev, NULL, "C0 70 005A5AF0", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 005A5AF1", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	
+	//High Brightness Mode Setting
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00BBB015", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 0000FBB1", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000239", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 CC0003B5", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000439", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 0CD30CBA", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 00FA0D7E", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000739", 0);
+	
+	//Lock
+	anx7580_write_reg4_store(dev, NULL, "C0 70 00A5A5F0", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 70 00A5A5F1", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	
+	//Turn on Normal Brightness Mode
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00285315", 0);
+	//500 NITS
+	anx7580_write_reg4_store(dev, NULL, "C0 70 00FF0751", 0);
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00000339", 0);
+	
+	//Delay 20 ms;
+	msleep(20);
+	//sleep 0.020
+	
+	//DISP ON
+	anx7580_write_reg4_store(dev, NULL, "C0 6C 00002905", 0);
+	
+	//Delay 5 ms;
+	msleep(5);
+	//sleep 0.005
+	
+	//HS mode ###
+	
+	anx7580_write_reg_store(dev, NULL, "a0 10 7F", 0);
+	anx7580_write_reg_store(dev, NULL, "a0 0 3F", 0);
+	anx7580_write_reg_store(dev, NULL, "a0 14 1F", 0);
+	
+	anx7580_write_reg_store(dev, NULL, "c0 34 00000000", 0);
+	
+	//set HPD to unforce high
+	anx7580_write_reg_store(dev, NULL, "30 028 08", 0);
+
+	pr_info("anx7580: %s exit\n", __func__);
+}
+
+static int anx7580_resume_early(struct device *dev)
+{
+	sequence_1st(dev);
 	return 0;
 }
 
-static DEFINE_RUNTIME_DEV_PM_OPS(anx7580_pm_ops, anx7580_runtime_suspend,
-				 anx7580_runtime_resume, NULL);
+static void anx7580_complete(struct device *dev)
+{
+	sequence_2nd(dev);
+}
+
+//static DEFINE_RUNTIME_DEV_PM_OPS(anx7580_pm_ops, anx7580_runtime_suspend,
+//				 anx7580_runtime_resume, NULL);
+static const struct dev_pm_ops anx7580_pm_ops = {
+	.complete = anx7580_complete,
+	.resume_early = anx7580_resume_early,
+	.suspend_late = anx7580_suspend_late,
+};
 
 static const struct acpi_device_id anx7580_acpi_match[] = {
         { "ANX7580A", 0 },
@@ -721,7 +1106,7 @@ MODULE_DEVICE_TABLE(of, anx7580_of_ids);
 static struct i2c_driver anx7580_i2c_driver = {
         .driver = {
                 .name   = "anx7580",
-                .pm     = pm_ptr(&anx7580_pm_ops),
+                .pm     = &anx7580_pm_ops,
                 .of_match_table = anx7580_of_ids,
                 .acpi_match_table = anx7580_acpi_match,
         },
