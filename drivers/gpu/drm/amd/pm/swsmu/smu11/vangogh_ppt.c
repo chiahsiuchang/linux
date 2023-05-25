@@ -141,6 +141,8 @@ static struct cmn2asic_msg_mapping vangogh_message_map[SMU_MSG_MAX_COUNT] = {
 	MSG_MAP(GetGfxOffStatus,		    PPSMC_MSG_GetGfxOffStatus,						0),
 	MSG_MAP(GetGfxOffEntryCount,		    PPSMC_MSG_GetGfxOffEntryCount,					0),
 	MSG_MAP(LogGfxOffResidency,		    PPSMC_MSG_LogGfxOffResidency,					0),
+	MSG_MAP(SetCClkSMTEnable,		    PPSMC_MSG_SetCClkSMTEnable,						0),
+	MSG_MAP(SetPDDataLimit,	                    PPSMC_MSG_SetPDDataLimit,						0),
 };
 
 static struct cmn2asic_mapping vangogh_feature_mask_map[SMU_FEATURE_COUNT] = {
@@ -2430,6 +2432,36 @@ static u32 vangogh_get_gfxoff_entrycount(struct smu_context *smu, uint64_t *entr
 	return ret;
 }
 
+static void vangogh_debugfs_init(struct smu_context *smu)
+{
+	u32 smu_version, smu_program, fw_version;
+
+	if (!smu->adev->pm.fw_version) {
+		if (smu_cmn_get_smc_version(smu, NULL, &smu_version))
+			return;
+		smu->adev->pm.fw_version = smu_version;
+	}
+
+	smu_version = smu->adev->pm.fw_version;
+	smu_program = (smu_version >> 24) & 0xff;
+	fw_version = smu_version & 0xffffff;
+	if ((smu_program == 4 && fw_version >= 0x3F3E46) ||
+	    (smu_program == 6 && fw_version >= 0x3F0750))
+		smu_smt_debugfs_init(smu);
+}
+
+static int vangogh_set_cpu_smt_enable(struct smu_context *smu, bool enable)
+{
+	return smu_cmn_send_smc_msg_with_param(smu, SMU_MSG_SetCClkSMTEnable,
+					       enable ? 1 : 0, NULL);
+}
+
+static int vangogh_set_pd_data_limit(struct smu_context *smu, u32 limit)
+{
+	return smu_cmn_send_smc_msg_with_param(smu, SMU_MSG_SetPDDataLimit,
+					       limit, NULL);
+}
+
 static const struct pptable_funcs vangogh_ppt_funcs = {
 
 	.check_fw_status = smu_v11_0_check_fw_status,
@@ -2476,6 +2508,9 @@ static const struct pptable_funcs vangogh_ppt_funcs = {
 	.get_power_limit = vangogh_get_power_limit,
 	.set_power_limit = vangogh_set_power_limit,
 	.get_vbios_bootup_values = smu_v11_0_get_vbios_bootup_values,
+	.debugfs_init = vangogh_debugfs_init,
+	.set_cpu_smt_enable = vangogh_set_cpu_smt_enable,
+	.set_pd_data_limit = vangogh_set_pd_data_limit,
 };
 
 void vangogh_set_ppt_funcs(struct smu_context *smu)

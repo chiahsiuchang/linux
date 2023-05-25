@@ -1354,6 +1354,21 @@ struct pptable_funcs {
 	 * @init_pptable_microcode: Prepare the pptable microcode to upload via PSP
 	 */
 	int (*init_pptable_microcode)(struct smu_context *smu);
+
+	/**
+	 * @debugfs_init: Initialize debugfs for smu.
+	 */
+	void (*debugfs_init)(struct smu_context *smu);
+
+	/**
+	 * @set_cpu_smt_enable: Set the CPU SMT status.
+	 */
+	int (*set_cpu_smt_enable)(struct smu_context *smu, bool smt_enable);
+
+	/**
+	 * @set_pd_data_limit: Set CCLK_PD_Data_Limit.
+	 */
+	int (*set_pd_data_limit)(struct smu_context *smu, u32 limit);
 };
 
 typedef enum {
@@ -1511,7 +1526,7 @@ int smu_wait_for_event(struct smu_context *smu, enum smu_event_type event,
 		       uint64_t event_arg);
 int smu_get_ecc_info(struct smu_context *smu, void *umc_ecc);
 int smu_stb_collect_info(struct smu_context *smu, void *buff, uint32_t size);
-void amdgpu_smu_stb_debug_fs_init(struct amdgpu_device *adev);
+void amdgpu_smu_debugfs_init(struct amdgpu_device *adev);
 int smu_send_hbm_bad_pages_num(struct smu_context *smu, uint32_t size);
 int smu_send_hbm_bad_channel_flag(struct smu_context *smu, uint32_t size);
 #endif

@@ -1058,3 +1058,144 @@ bool smu_cmn_is_audio_func_enabled(struct amdgpu_device *adev)
 
 	return snd_driver_loaded;
 }
+
+static int smu_set_cpu_smt_enable(struct smu_context *smu, bool enable)
+{
+	int ret = -EOPNOTSUPP;
+
+	if (smu->ppt_funcs && smu->ppt_funcs->set_cpu_smt_enable)
+		ret = smu->ppt_funcs->set_cpu_smt_enable(smu, enable);
+
+	return ret;
+}
+
+static int smu_set_pd_data_limit(struct smu_context *smu, u32 limit)
+{
+	int ret = -EOPNOTSUPP;
+
+	if (smu->ppt_funcs && smu->ppt_funcs->set_pd_data_limit)
+		ret = smu->ppt_funcs->set_pd_data_limit(smu, limit);
+
+	return ret;
+}
+
+#if defined(CONFIG_DEBUG_FS)
+static ssize_t smu_smt_debugfs_read(struct file *file,
+				    char __user *user_buf,
+				    size_t size, loff_t *pos)
+{
+	return simple_read_from_buffer(user_buf, size, pos, "1/0\n", 4);
+}
+
+static ssize_t smu_smt_debugfs_write(struct file *file,
+				     const char __user *user_buf,
+				     size_t count, loff_t *pos)
+{
+	struct smu_context *smu = (struct smu_context *)file_inode(file)->i_private;
+	char buf[16];
+	bool smt_enable;
+	int ret;
+
+	ret = simple_write_to_buffer(buf, sizeof(buf) - 1, pos, user_buf, count);
+	if (ret <= 0)
+		return ret;
+
+	ret = kstrtobool(buf, &smt_enable);
+	if (ret)
+		return ret;
+
+	ret = smu_set_cpu_smt_enable(smu, smt_enable);
+	if (ret)
+		return ret;
+
+	return count;
+}
+
+static const struct file_operations smu_smt_debugfs_ops = {
+	.owner  = THIS_MODULE,
+	.read   = smu_smt_debugfs_read,
+	.write  = smu_smt_debugfs_write,
+	.llseek = default_llseek
+};
+
+static ssize_t smu_pd_data_limit_debugfs_read(struct file *file,
+					      char __user *user_buf,
+					      size_t size, loff_t *pos)
+{
+	return simple_read_from_buffer(user_buf, size, pos,
+			"ac/dc/both on/off capped/uncapped 40-100\n", 41);
+}
+
+static ssize_t smu_pd_data_limit_debugfs_write(struct file *file,
+					       const char __user *user_buf,
+					       size_t count, loff_t *pos)
+{
+	struct smu_context *smu = (struct smu_context *)file_inode(file)->i_private;
+	char buf[48];
+	char power_source_str[5], smt_status_str[4], workload_mode_str[9];
+	u32 power_source, smt_status, workload_mode, pd_data_limit;
+	u32 limit;
+	int ret, num;
+
+	ret = simple_write_to_buffer(buf, sizeof(buf) - 1, pos, user_buf, count);
+	if (ret <= 0)
+		return ret;
+
+	num = sscanf(buf, "%s %s %s %u",
+		     power_source_str, smt_status_str,
+		     workload_mode_str, &pd_data_limit);
+	if (num != 4)
+		return -EINVAL;
+
+	if (!strncmp(power_source_str, "ac", 2))
+		power_source = 1;
+	else if (!strncmp(power_source_str, "dc", 2))
+		power_source = 2;
+	else if (!strncmp(power_source_str, "both", 4))
+		power_source = 3;
+	else
+		return -EINVAL;
+
+	if (!strncmp(smt_status_str, "on", 2))
+		smt_status = 1;
+	else if (!strncmp(smt_status_str, "off", 3))
+		smt_status = 0;
+	else
+		return -EINVAL;
+
+	if (!strncmp(workload_mode_str, "capped", 6))
+		workload_mode = 0;
+	else if (!strncmp(workload_mode_str, "uncapped", 8))
+		workload_mode = 1;
+	else
+		return -EINVAL;
+
+	limit = (power_source << 30) | (smt_status  << 29) |
+		(workload_mode << 28) | (pd_data_limit & 0x0fffffff);
+
+	ret = smu_set_pd_data_limit(smu, limit);
+	if (ret)
+		return ret;
+
+	return count;
+}
+
+static const struct file_operations smu_pd_data_limit_debugfs_ops = {
+	.owner  = THIS_MODULE,
+	.read   = smu_pd_data_limit_debugfs_read,
+	.write  = smu_pd_data_limit_debugfs_write,
+	.llseek = default_llseek
+};
+#endif
+
+void smu_smt_debugfs_init(struct smu_context *smu)
+{
+#if defined(CONFIG_DEBUG_FS)
+	debugfs_create_file("smt_state", 0600,
+			    adev_to_drm(smu->adev)->primary->debugfs_root,
+			    smu, &smu_smt_debugfs_ops);
+	debugfs_create_file("pd_data_limit", 0600,
+			    adev_to_drm(smu->adev)->primary->debugfs_root,
+			    smu, &smu_pd_data_limit_debugfs_ops);
+#endif
+}
