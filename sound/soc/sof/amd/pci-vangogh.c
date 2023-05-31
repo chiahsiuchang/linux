@@ -91,6 +91,9 @@ static struct pci_driver snd_sof_pci_amd_vgh_driver = {
 	.id_table = vgh_pci_ids,
 	.probe = acp_pci_vgh_probe,
 	.remove = acp_pci_vgh_remove,
+	.driver = {
+		.pm = &sof_pci_pm,
+	},
 };
 module_pci_driver(snd_sof_pci_amd_vgh_driver);
 
