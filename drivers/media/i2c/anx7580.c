@@ -1089,13 +1089,13 @@ static void sequence_2nd(struct device *dev)
 
 static int anx7580_resume_early(struct device *dev)
 {
-	sequence_1st(dev);
+//	sequence_1st(dev);
 	return 0;
 }
 
 static void anx7580_complete(struct device *dev)
 {
-	sequence_2nd(dev);
+//	sequence_2nd(dev);
 }
 
 //static DEFINE_RUNTIME_DEV_PM_OPS(anx7580_pm_ops, anx7580_runtime_suspend,
