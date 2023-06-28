@@ -69,7 +69,7 @@ int acp_sof_ipc_send_msg(struct snd_sof_dev *sdev, struct snd_sof_ipc_msg *msg)
 	struct acp_dev_data *adata = sdev->pdata->hw_pdata;
 	const struct sof_amd_acp_desc *desc = get_chip_info(sdev->pdata);
 	unsigned int offset = sdev->host_box.offset;
-	unsigned int count = ACP_HW_SEM_RETRY_COUNT;
+	unsigned int count = 60000;
 
 	while (snd_sof_dsp_read(sdev, ACP_DSP_BAR, desc->hw_semaphore_offset)) {
 		/* Wait until acquired HW Semaphore Lock or timeout*/
