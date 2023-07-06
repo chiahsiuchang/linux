@@ -353,6 +353,8 @@ static const struct snd_kcontrol_new nau8821_controls[] = {
 		nau8821_biq_coeff_get, nau8821_biq_coeff_put),
 	SOC_SINGLE("ADC Phase Switch", NAU8821_R1B_TDM_CTRL,
 		NAU8821_ADCPHS_SFT, 1, 0),
+	SOC_SINGLE("DMIC CLK Drive Current Switch", NAU8821_R13_DMIC_CTRL,
+		NAU8821_DMIC_CLK_DRIVE_CURRENT_SFT, 1, 0),
 };
 
 static const struct snd_kcontrol_new nau8821_dmic_mode_switch =
@@ -410,29 +412,10 @@ static int nau8821_left_adc_event(struct snd_soc_dapm_widget *w,
 		msleep(125);
 		regmap_update_bits(nau8821->regmap, NAU8821_R01_ENA_CTRL,
 			NAU8821_EN_ADCL, NAU8821_EN_ADCL);
-		regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
-			NAU8821_HP_BOOST_DISCHRG_EN,
-			NAU8821_HP_BOOST_DISCHRG_EN);
-		regmap_update_bits(nau8821->regmap, NAU8821_R6B_PGA_MUTE,
-			NAU8821_MUTE_MICNL_MASK, NAU8821_MUTE_MICNL_MASK);
-		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
-			NAU8821_MICBIAS_LOWNOISE_EN,
-			NAU8821_MICBIAS_LOWNOISE_EN);
-		regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
-			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN,
-			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN);
 		break;
 	case SND_SOC_DAPM_POST_PMD:
 		regmap_update_bits(nau8821->regmap,
 			NAU8821_R01_ENA_CTRL, NAU8821_EN_ADCL, 0);
-		regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
-			NAU8821_HP_BOOST_DISCHRG_EN, 0);
-		regmap_update_bits(nau8821->regmap, NAU8821_R6B_PGA_MUTE,
-			NAU8821_MUTE_MICNL_MASK, 0);
-		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
-			NAU8821_MICBIAS_LOWNOISE_EN, 0);
-		regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
-			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN, 0);
 		break;
 	default:
 		return -EINVAL;
@@ -453,29 +436,10 @@ static int nau8821_right_adc_event(struct snd_soc_dapm_widget *w,
 		msleep(125);
 		regmap_update_bits(nau8821->regmap, NAU8821_R01_ENA_CTRL,
 			NAU8821_EN_ADCR, NAU8821_EN_ADCR);
-		regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
-			NAU8821_HP_BOOST_DISCHRG_EN,
-			NAU8821_HP_BOOST_DISCHRG_EN);
-		regmap_update_bits(nau8821->regmap, NAU8821_R6B_PGA_MUTE,
-			NAU8821_MUTE_MICNL_MASK, NAU8821_MUTE_MICNL_MASK);
-		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
-			NAU8821_MICBIAS_LOWNOISE_EN,
-			NAU8821_MICBIAS_LOWNOISE_EN);
-		regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
-			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN,
-			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN);
 		break;
 	case SND_SOC_DAPM_POST_PMD:
 		regmap_update_bits(nau8821->regmap,
 			NAU8821_R01_ENA_CTRL, NAU8821_EN_ADCR, 0);
-		regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
-			NAU8821_HP_BOOST_DISCHRG_EN, 0);
-		regmap_update_bits(nau8821->regmap, NAU8821_R6B_PGA_MUTE,
-			NAU8821_MUTE_MICNL_MASK, 0);
-		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
-			NAU8821_MICBIAS_LOWNOISE_EN, 0);
-		regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
-			NAU8821_FEPGA_ACDC_CTRL_BIT1_EN, 0);
 		break;
 	default:
 		return -EINVAL;
@@ -558,11 +522,49 @@ static int system_clock_control(struct snd_soc_dapm_widget *w,
 	return 0;
 }
 
+static int micbias_control(struct snd_soc_dapm_widget *w,
+		struct snd_kcontrol *k, int  event)
+{
+	struct snd_soc_component *component =
+		snd_soc_dapm_to_component(w->dapm);
+	struct nau8821 *nau8821 = snd_soc_component_get_drvdata(component);
+
+	switch (event) {
+	case SND_SOC_DAPM_PRE_PMU:
+		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
+			NAU8821_MICBIAS_POWERUP_EN,
+			NAU8821_MICBIAS_POWERUP_EN);
+		if (nau8821->single_ended == true) {
+			regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
+				NAU8821_HP_BOOST_DISCHRG_EN,
+				NAU8821_HP_BOOST_DISCHRG_EN);
+			regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
+				NAU8821_FEPGA_ACDC_CTRL_BIT1_EN,
+				NAU8821_FEPGA_ACDC_CTRL_BIT1_EN);
+		}
+		break;
+	case SND_SOC_DAPM_POST_PMD:
+		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
+			NAU8821_MICBIAS_POWERUP_EN,0);
+		if (nau8821->single_ended == true) {
+			regmap_update_bits(nau8821->regmap, NAU8821_R76_BOOST,
+				NAU8821_HP_BOOST_DISCHRG_EN, 0);
+			regmap_update_bits(nau8821->regmap, NAU8821_R77_FEPGA,
+				NAU8821_FEPGA_ACDC_CTRL_BIT1_EN, 0);
+		}
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 static const struct snd_soc_dapm_widget nau8821_dapm_widgets[] = {
 	SND_SOC_DAPM_SUPPLY("System Clock", SND_SOC_NOPM, 0, 0,
 		system_clock_control, SND_SOC_DAPM_POST_PMD),
-	SND_SOC_DAPM_SUPPLY("MICBIAS", NAU8821_R74_MIC_BIAS,
-		NAU8821_MICBIAS_POWERUP_SFT, 0, NULL, 0),
+	SND_SOC_DAPM_SUPPLY("MICBIAS", SND_SOC_NOPM, 0, 0,
+		micbias_control, SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_SUPPLY("DMIC Clock", SND_SOC_NOPM, 0, 0,
 		dmic_clock_control, SND_SOC_DAPM_POST_PMU),
 	SND_SOC_DAPM_ADC("ADCL Power", NULL, NAU8821_R72_ANALOG_ADC_2,
@@ -1611,6 +1613,8 @@ static int nau8821_read_device_properties(struct device *dev,
 		"nuvoton,jkdet-pull-up");
 	nau8821->key_enable = device_property_read_bool(dev,
 		"nuvoton,key-enable");
+	nau8821->single_ended = device_property_read_bool(dev,
+		"nuvoton,single-ended");
 	ret = device_property_read_u32(dev, "nuvoton,jkdet-polarity",
 		&nau8821->jkdet_polarity);
 	if (ret)
@@ -1635,7 +1639,6 @@ static int nau8821_read_device_properties(struct device *dev,
 		&nau8821->dmic_clk_threshold);
 	if (ret)
 		nau8821->dmic_clk_threshold = 3072000;
-
 	return 0;
 }
 
@@ -1694,6 +1697,14 @@ static void nau8821_init_regs(struct nau8821 *nau8821)
 		NAU8821_ADC_SYNC_DOWN_MASK, NAU8821_ADC_SYNC_DOWN_64);
 	regmap_update_bits(regmap, NAU8821_R2C_DAC_CTRL1,
 		NAU8821_DAC_OVERSAMPLE_MASK, NAU8821_DAC_OVERSAMPLE_64);
+	if (nau8821->single_ended == true) {
+		regmap_update_bits(nau8821->regmap, NAU8821_R6B_PGA_MUTE,
+			NAU8821_MUTE_MICNL_MASK,
+			NAU8821_MUTE_MICNL_MASK);
+		regmap_update_bits(nau8821->regmap, NAU8821_R74_MIC_BIAS,
+			NAU8821_MICBIAS_LOWNOISE_EN,
+			NAU8821_MICBIAS_LOWNOISE_EN);
+	}
 }
 
 static int nau8821_setup_irq(struct nau8821 *nau8821)
@@ -1739,7 +1750,7 @@ static int nau8821_i2c_probe(struct i2c_client *i2c)
 	struct device *dev = &i2c->dev;
 	struct nau8821 *nau8821 = dev_get_platdata(&i2c->dev);
 	int ret, value;
-	printk("[seven] 20230421\n");
+
 	if (!nau8821) {
 		nau8821 = devm_kzalloc(dev, sizeof(*nau8821), GFP_KERNEL);
 		if (!nau8821)

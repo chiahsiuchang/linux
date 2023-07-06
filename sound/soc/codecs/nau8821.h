@@ -228,6 +228,7 @@
 #define NAU8821_IRQ_INSERT_DIS		0x1
 
 /* DMIC_CTRL (0x13) */
+#define NAU8821_DMIC_CLK_DRIVE_CURRENT_SFT 11
 #define NAU8821_DMIC_DS_SFT	7
 #define NAU8821_DMIC_DS_MASK	(0x1 << NAU8821_DMIC_DS_SFT)
 #define NAU8821_DMIC_DS_HIGH	(0x1 << NAU8821_DMIC_DS_SFT)
@@ -474,6 +475,7 @@
 #define NAU8821_MICBIAS_LOWNOISE_SFT	10
 #define NAU8821_MICBIAS_LOWNOISE_EN	(0x1 << NAU8821_MICBIAS_LOWNOISE_SFT)
 #define NAU8821_MICBIAS_POWERUP_SFT	8
+#define NAU8821_MICBIAS_POWERUP_EN	(0x1 << NAU8821_MICBIAS_POWERUP_SFT)
 #define NAU8821_MICBIAS_VOLTAGE_SFT	0
 #define NAU8821_MICBIAS_VOLTAGE_MASK	0x7
 
@@ -563,6 +565,7 @@ struct nau8821 {
 	int fs;
 	int dmic_clk_threshold;
 	int key_enable;
+	int single_ended;
 };
 
 int nau8821_enable_jack_detect(struct snd_soc_component *component,
