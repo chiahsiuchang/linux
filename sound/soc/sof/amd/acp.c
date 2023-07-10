@@ -344,6 +344,7 @@ static irqreturn_t acp_irq_thread(int irq, void *context)
 		return IRQ_HANDLED;
 	}
 
+	spin_lock_irq(&sdev->ipc_lock);
 	while (snd_sof_dsp_read(sdev, ACP_DSP_BAR, desc->hw_semaphore_offset)) {
 		/* Wait until acquired HW Semaphore lock or timeout */
 		count--;
@@ -356,6 +357,7 @@ static irqreturn_t acp_irq_thread(int irq, void *context)
 	sof_ops(sdev)->irq_thread(irq, sdev);
 	/* Unlock or Release HW Semaphore */
 	snd_sof_dsp_write(sdev, ACP_DSP_BAR, desc->hw_semaphore_offset, 0x0);
+	spin_unlock_irq(&sdev->ipc_lock);
 
 	return IRQ_HANDLED;
 };
