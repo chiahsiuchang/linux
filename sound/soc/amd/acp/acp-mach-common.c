@@ -1160,6 +1160,8 @@ SND_SOC_DAILINK_DEF(sof_hs,
 		    DAILINK_COMP_ARRAY(COMP_CPU("acp-sof-hs")));
 SND_SOC_DAILINK_DEF(sof_hs_virtual,
 	DAILINK_COMP_ARRAY(COMP_CPU("acp-sof-hs-virtual")));
+SND_SOC_DAILINK_DEF(sof_bt,
+		    DAILINK_COMP_ARRAY(COMP_CPU("acp-sof-bt")));
 SND_SOC_DAILINK_DEF(sof_dmic,
 	DAILINK_COMP_ARRAY(COMP_CPU("acp-sof-dmic")));
 SND_SOC_DAILINK_DEF(pdm_dmic,
@@ -1217,6 +1219,8 @@ int acp_sofdsp_dai_links_create(struct snd_soc_card *card)
 	int i = 0, num_links = 0;
 
 	if (drv_data->hs_cpu_id)
+		num_links++;
+	if (drv_data->bt_cpu_id)
 		num_links++;
 	if (drv_data->amp_cpu_id)
 		num_links++;
@@ -1371,6 +1375,26 @@ int acp_sofdsp_dai_links_create(struct snd_soc_card *card)
 			card->codec_conf = cs35l41_conf;
 			card->num_configs = ARRAY_SIZE(cs35l41_conf);
 			links[i].ops = &acp_cs35l41_ops;
+		}
+		i++;
+	}
+
+	if (drv_data->bt_cpu_id == I2S_BT) {
+		links[i].name = "acp-bt-codec";
+		links[i].id = BT_BE_ID;
+		links[i].cpus = sof_bt;
+		links[i].num_cpus = ARRAY_SIZE(sof_bt);
+		links[i].platforms = sof_component;
+		links[i].num_platforms = ARRAY_SIZE(sof_component);
+		links[i].dpcm_playback = 1;
+		links[i].dpcm_capture = 1;
+		links[i].nonatomic = true;
+		links[i].no_pcm = 1;
+		if (!drv_data->bt_codec_id) {
+			/* Use dummy codec if codec id not specified */
+			links[i].codecs = dummy_codec;
+			links[i].num_codecs = ARRAY_SIZE(dummy_codec);
+			links[i].num_codecs = 1;
 		}
 		i++;
 	}
