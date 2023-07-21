@@ -564,7 +564,6 @@ struct nau8821 {
 	int jack_eject_debounce;
 	int fs;
 	int dmic_clk_threshold;
-	int key_enable;
 	int single_ended;
 };
 
