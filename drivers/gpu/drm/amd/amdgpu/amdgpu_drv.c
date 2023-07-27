@@ -2454,6 +2454,11 @@ static int amdgpu_pmops_suspend_noirq(struct device *dev)
 	if (amdgpu_acpi_should_gpu_reset(adev))
 		return amdgpu_asic_reset(adev);
 
+	/* update flag to make sure csib will be sent when system
+	 * resume from normal S3
+	 */
+	adev->csib_initialized = false;
+
 	return 0;
 }
 
