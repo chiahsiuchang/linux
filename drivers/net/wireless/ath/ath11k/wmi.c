@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 /*
  * Copyright (c) 2018-2019 The Linux Foundation. All rights reserved.
- * Copyright (c) 2021, 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2021, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 #include <linux/skbuff.h>
 #include <linux/ctype.h>
@@ -19,7 +19,6 @@
 #include "mac.h"
 #include "hw.h"
 #include "peer.h"
-#include "testmode.h"
 
 struct wmi_tlv_policy {
 	size_t min_len;
@@ -864,8 +863,7 @@ static void ath11k_wmi_put_wmi_channel(struct wmi_channel *chan,
 
 		chan->band_center_freq2 = arg->channel.band_center_freq1;
 
-	} else if ((arg->channel.mode == MODE_11AC_VHT80_80) ||
-		   (arg->channel.mode == MODE_11AX_HE80_80)) {
+	} else if (arg->channel.mode == MODE_11AC_VHT80_80) {
 		chan->band_center_freq2 = arg->channel.band_center_freq2;
 	} else {
 		chan->band_center_freq2 = 0;
@@ -3968,7 +3966,6 @@ ath11k_wmi_copy_resource_config(struct wmi_resource_config *wmi_cfg,
 	wmi_cfg->sched_params = tg_cfg->sched_params;
 	wmi_cfg->twt_ap_pdev_count = tg_cfg->twt_ap_pdev_count;
 	wmi_cfg->twt_ap_sta_count = tg_cfg->twt_ap_sta_count;
-	wmi_cfg->host_service_flags = tg_cfg->host_service_flags;
 }
 
 static int ath11k_init_cmd_send(struct ath11k_pdev_wmi *wmi,
@@ -7748,37 +7745,6 @@ exit:
 }
 
 static void
-ath11k_wmi_tm_event_segmented(struct ath11k_base *ab, u32 cmd_id,
-			      struct sk_buff *skb)
-{
-	const void **tb;
-	const struct wmi_ftm_event_msg *ev;
-	u16 length;
-	int ret;
-
-	tb = ath11k_wmi_tlv_parse_alloc(ab, skb->data, skb->len, GFP_ATOMIC);
-	if (IS_ERR(tb)) {
-		ret = PTR_ERR(tb);
-		ath11k_warn(ab, "failed to parse ftm event tlv: %d\n", ret);
-		return;
-	}
-
-	ev = tb[WMI_TAG_ARRAY_BYTE];
-	if (!ev) {
-		ath11k_warn(ab, "failed to fetch ftm msg\n");
-		kfree(tb);
-		return;
-	}
-
-	length = skb->len - TLV_HDR_SIZE;
-	ret = ath11k_tm_process_event(ab, cmd_id, ev, length);
-	if (ret)
-		ath11k_warn(ab, "Failed to process ftm event\n");
-
-	kfree(tb);
-}
-
-static void
 ath11k_wmi_pdev_temperature_event(struct ath11k_base *ab,
 				  struct sk_buff *skb)
 {
@@ -8129,12 +8095,6 @@ static void ath11k_wmi_tlv_op_rx(struct ath11k_base *ab, struct sk_buff *skb)
 		break;
 	case WMI_PDEV_CSA_SWITCH_COUNT_STATUS_EVENTID:
 		ath11k_wmi_pdev_csa_switch_count_status_event(ab, skb);
-		break;
-	case WMI_PDEV_UTF_EVENTID:
-		if (test_bit(ATH11K_FLAG_FTM_SEGMENTED, &ab->dev_flags))
-			ath11k_wmi_tm_event_segmented(ab, id, skb);
-		else
-			ath11k_tm_wmi_event_unsegmented(ab, id, skb);
 		break;
 	case WMI_PDEV_TEMPERATURE_EVENTID:
 		ath11k_wmi_pdev_temperature_event(ab, skb);
@@ -9204,79 +9164,4 @@ int ath11k_wmi_sta_keepalive(struct ath11k *ar,
 		   arg->vdev_id, arg->enabled, arg->method, arg->interval);
 
 	return ath11k_wmi_cmd_send(wmi, skb, WMI_STA_KEEPALIVE_CMDID);
-}
-
-int ath11k_wmi_set_unit_test(struct ath11k *ar, struct unit_test_cmd *unit_test)
-{
-	struct ath11k_pdev_wmi *wmi = ar->wmi;
-	struct sk_buff *skb;
-	struct wmi_unit_test_cmd_fixed_param *cmd;
-	u32 len, args_tlv_len;
-	u8 *buf_ptr;
-	u32 *args;
-	struct wmi_tlv *tlv;
-	u32 i;
-
-	args_tlv_len = TLV_HDR_SIZE + unit_test->num_args * sizeof(u32);
-
-	len = sizeof(struct wmi_unit_test_cmd_fixed_param) + args_tlv_len;
-	skb = ath11k_wmi_alloc_skb(wmi->wmi_ab, len);
-	if (!skb)
-		return -ENOMEM;
-
-	cmd = (struct wmi_unit_test_cmd_fixed_param *)skb->data;
-	buf_ptr = (u8 *)cmd;
-	cmd->tlv_header = FIELD_PREP(WMI_TLV_TAG,
-				     WMI_TAG_UNIT_TEST_CMD) |
-				     FIELD_PREP(WMI_TLV_LEN, sizeof(*cmd) - TLV_HDR_SIZE);
-	cmd->vdev_id = unit_test->vdev_id;
-	cmd->module_id = unit_test->module_id;
-	cmd->num_args = unit_test->num_args;
-
-	buf_ptr += sizeof(*cmd);
-
-	tlv  = (struct wmi_tlv *)buf_ptr;
-	tlv->header = FIELD_PREP(WMI_TLV_TAG, WMI_TAG_ARRAY_UINT32) |
-				 FIELD_PREP(WMI_TLV_LEN, unit_test->num_args * sizeof(u32));
-	args = (u32 *)(buf_ptr + TLV_HDR_SIZE);
-	ath11k_info(ar->ab, "module id = 0x%x, num args = %u",
-		    unit_test->module_id, unit_test->num_args);
-	for (i = 0; (i < unit_test->num_args && i < UNIT_TEST_MAX_NUM_ARGS); i++) {
-		args[i] = unit_test->args[i];
-		ath11k_info(ar->ab, "0x%x,", unit_test->args[i]);
-	}
-
-	return ath11k_wmi_cmd_send(wmi, skb, WMI_UNIT_TEST_CMDID);
-}
-
-int ath11k_wmi_send_coex_config(struct ath11k *ar,
-				struct wmi_coex_config_params *param)
-{
-	struct ath11k_pdev_wmi *wmi = ar->wmi;
-	struct wmi_coex_config_cmd *cmd;
-	struct sk_buff *skb;
-
-	skb = ath11k_wmi_alloc_skb(wmi->wmi_ab, sizeof(*cmd));
-	if (!skb)
-		return -ENOMEM;
-
-	cmd = (struct wmi_coex_config_cmd *)skb->data;
-	cmd->tlv_header = FIELD_PREP(WMI_TLV_TAG, WMI_TAG_COEX_CONFIG_CMD) |
-			  FIELD_PREP(WMI_TLV_LEN, sizeof(*cmd) - TLV_HDR_SIZE);
-	cmd->vdev_id = param->vdev_id;
-	cmd->config_type = param->config_type;
-	cmd->config_arg1 = param->config_arg1;
-	cmd->config_arg2 = param->config_arg2;
-	cmd->config_arg3 = param->config_arg3;
-	cmd->config_arg4 = param->config_arg4;
-	cmd->config_arg5 = param->config_arg5;
-	cmd->config_arg6 = param->config_arg6;
-
-	ath11k_dbg(ar->ab, ATH11K_DBG_WMI,
-			"wmi send coex cfg vdev %d type %u args %u %u %u %u %u %u\n",
-			cmd->vdev_id, cmd->config_type, cmd->config_arg1,
-			cmd->config_arg2, cmd->config_arg3, cmd->config_arg4,
-			cmd->config_arg5, cmd->config_arg6);
-
-	return ath11k_wmi_cmd_send(wmi, skb, WMI_COEX_CONFIG_CMDID);
 }

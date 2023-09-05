@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-3-Clause-Clear */
 /*
  * Copyright (c) 2018-2019 The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2021-2022 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #ifndef ATH11K_CORE_H
@@ -142,7 +142,6 @@ enum ath11k_hw_rev {
 	ATH11K_HW_WCN6855_HW20,
 	ATH11K_HW_WCN6855_HW21,
 	ATH11K_HW_WCN6750_HW10,
-	ATH11K_HW_QCA206X_HW21,
 };
 
 enum ath11k_firmware_mode {
@@ -270,7 +269,6 @@ enum ath11k_dev_flags {
 	ATH11K_FLAG_FIXED_MEM_RGN,
 	ATH11K_FLAG_DEVICE_INIT_DONE,
 	ATH11K_FLAG_MULTI_MSI_VECTORS,
-	ATH11K_FLAG_FTM_SEGMENTED,
 };
 
 enum ath11k_monitor_flags {
@@ -523,7 +521,6 @@ enum ath11k_state {
 	ATH11K_STATE_RESTARTING,
 	ATH11K_STATE_RESTARTED,
 	ATH11K_STATE_WEDGED,
-	ATH11K_STATE_TM,
 	/* Add other states as required */
 };
 
@@ -533,12 +530,6 @@ enum ath11k_state {
 #define ATH11K_INVALID_RSSI_FULL -1
 
 #define ATH11K_INVALID_RSSI_EMPTY -128
-
-struct ath11k_ftm_event_obj {
-	u32 data_pos;
-	u32 expected_seq;
-	u8 *eventdata;
-};
 
 struct ath11k_fw_stats {
 	struct dentry *debugfs_fwstats;
@@ -709,8 +700,6 @@ struct ath11k {
 	u32 last_ppdu_id;
 	u32 cached_ppdu_id;
 	int monitor_vdev_id;
-	struct completion fw_mode_reset;
-	u8 ftm_msgref;
 #ifdef CONFIG_ATH11K_DEBUGFS
 	struct ath11k_debug debug;
 #endif
@@ -837,20 +826,9 @@ struct ath11k_msi_config {
 	u16 hw_rev;
 };
 
-struct fw_remote_mem {
-	size_t size;
-	void *vaddr;
-};
-
-struct fw_remote_crash_data {
-	u8 *remote_buf;
-	size_t remote_buf_len;
-};
-
 /* Master structure to hold the hw data which may be used in core module */
 struct ath11k_base {
 	enum ath11k_hw_rev hw_rev;
-	enum ath11k_firmware_mode fw_mode;
 	struct platform_device *pdev;
 	struct device *dev;
 	struct ath11k_qmi qmi;
@@ -961,7 +939,6 @@ struct ath11k_base {
 		u32 fw_crash_counter;
 	} stats;
 	u32 pktlog_defs_checksum;
-	struct ath11k_ftm_event_obj ftm_event_obj;
 
 	struct ath11k_dbring_cap *db_caps;
 	u32 num_db_cap;
@@ -991,9 +968,6 @@ struct ath11k_base {
 
 		const struct ath11k_pci_ops *ops;
 	} pci;
-
-	struct fw_remote_mem remote_mem[ATH11K_QMI_WLANFW_MAX_NUM_MEM_SEG_V01];
-	struct fw_remote_crash_data remote_crash_data;
 
 	/* must be last */
 	u8 drv_priv[] __aligned(sizeof(void *));
@@ -1249,6 +1223,4 @@ static inline const char *ath11k_bus_str(enum ath11k_bus bus)
 	return "unknown";
 }
 
-void *ath11k_core_dma_alloc_coherent(struct device *dev, size_t size,
-				     dma_addr_t *dma_handle, gfp_t flag);
 #endif /* _CORE_H_ */

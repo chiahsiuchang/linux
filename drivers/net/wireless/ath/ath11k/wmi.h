@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause-Clear */
 /*
  * Copyright (c) 2018-2019 The Linux Foundation. All rights reserved.
- * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #ifndef ATH11K_WMI_H
@@ -69,7 +68,6 @@ struct wmi_tlv {
 
 #define WMI_APPEND_TO_EXISTING_CHAN_LIST_FLAG 1
 
-#define MAX_WMI_UTF_LEN 252
 #define WMI_BA_MODE_BUFFER_SIZE_256  3
 /*
  * HW mode config type replicated from FW header
@@ -2311,7 +2309,6 @@ struct wmi_init_cmd {
 } __packed;
 
 #define WMI_RSRC_CFG_FLAG1_BSS_CHANNEL_INFO_64 BIT(5)
-#define WMI_RSRC_CFG_HOST_SERVICE_FLAG_NAN_IFACE_SUPPORT       BIT(0)
 
 struct wmi_resource_config {
 	u32 tlv_header;
@@ -2372,15 +2369,6 @@ struct wmi_resource_config {
 	u32 sched_params;
 	u32 twt_ap_pdev_count;
 	u32 twt_ap_sta_count;
-	u32 max_nlo_ssids;
-	u32 num_packet_filters;
-	u32 num_max_sta_vdevs;
-	u32 max_bssid_indicator;
-	u32 ul_resp_config;
-	u32 msdu_flow_override_config0;
-	u32 msdu_flow_override_config1;
-	u32 flags2;
-	u32 host_service_flags;
 } __packed;
 
 struct wmi_service_ready_event {
@@ -2869,32 +2857,30 @@ struct rx_reorder_queue_remove_params {
 #define WMI_VDEV_PARAM_TXBF_SU_TX_BFER BIT(2)
 #define WMI_VDEV_PARAM_TXBF_MU_TX_BFER BIT(3)
 
-#define HE_PHYCAP_BYTE_0	0
-#define HE_PHYCAP_BYTE_1	1
-#define HE_PHYCAP_BYTE_2	2
-#define HE_PHYCAP_BYTE_3	3
-#define HE_PHYCAP_BYTE_4	4
+#define HECAP_PHYDWORD_0	0
+#define HECAP_PHYDWORD_1	1
+#define HECAP_PHYDWORD_2	2
 
-#define HECAP_PHY_SU_BFER		BIT(7)
+#define HECAP_PHY_SU_BFER		BIT(31)
 #define HECAP_PHY_SU_BFEE		BIT(0)
 #define HECAP_PHY_MU_BFER		BIT(1)
-#define HECAP_PHY_UL_MUMIMO		BIT(6)
-#define HECAP_PHY_UL_MUOFDMA		BIT(7)
+#define HECAP_PHY_UL_MUMIMO		BIT(22)
+#define HECAP_PHY_UL_MUOFDMA		BIT(23)
 
 #define HECAP_PHY_SUBFMR_GET(hecap_phy) \
-	FIELD_GET(HECAP_PHY_SU_BFER, hecap_phy[HE_PHYCAP_BYTE_3])
+	FIELD_GET(HECAP_PHY_SU_BFER, hecap_phy[HECAP_PHYDWORD_0])
 
 #define HECAP_PHY_SUBFME_GET(hecap_phy) \
-	FIELD_GET(HECAP_PHY_SU_BFEE, hecap_phy[HE_PHYCAP_BYTE_4])
+	FIELD_GET(HECAP_PHY_SU_BFEE, hecap_phy[HECAP_PHYDWORD_1])
 
 #define HECAP_PHY_MUBFMR_GET(hecap_phy) \
-	FIELD_GET(HECAP_PHY_MU_BFER, hecap_phy[HE_PHYCAP_BYTE_4])
+	FIELD_GET(HECAP_PHY_MU_BFER, hecap_phy[HECAP_PHYDWORD_1])
 
 #define HECAP_PHY_ULMUMIMO_GET(hecap_phy) \
-	FIELD_GET(HECAP_PHY_UL_MUMIMO, hecap_phy[HE_PHYCAP_BYTE_2])
+	FIELD_GET(HECAP_PHY_UL_MUMIMO, hecap_phy[HECAP_PHYDWORD_0])
 
 #define HECAP_PHY_ULOFDMA_GET(hecap_phy) \
-	FIELD_GET(HECAP_PHY_UL_MUOFDMA, hecap_phy[HE_PHYCAP_BYTE_2])
+	FIELD_GET(HECAP_PHY_UL_MUOFDMA, hecap_phy[HECAP_PHYDWORD_0])
 
 #define HE_MODE_SU_TX_BFEE	BIT(0)
 #define HE_MODE_SU_TX_BFER	BIT(1)
@@ -2907,11 +2893,8 @@ struct rx_reorder_queue_remove_params {
 #define HE_DL_MUOFDMA_ENABLE	1
 #define HE_UL_MUOFDMA_ENABLE	1
 #define HE_DL_MUMIMO_ENABLE	1
-#define HE_UL_MUMIMO_ENABLE	1
 #define HE_MU_BFEE_ENABLE	1
 #define HE_SU_BFEE_ENABLE	1
-#define HE_MU_BFER_ENABLE	1
-#define HE_SU_BFER_ENABLE	1
 
 #define HE_VHT_SOUNDING_MODE_ENABLE		1
 #define HE_SU_MU_SOUNDING_MODE_ENABLE		1
@@ -3524,24 +3507,6 @@ struct wmi_get_pdev_temperature_cmd {
 	u32 tlv_header;
 	u32 param;
 	u32 pdev_id;
-} __packed;
-
-struct wmi_ftm_seg_hdr {
-	u32 len;
-	u32 msgref;
-	u32 segmentinfo;
-	u32 pdev_id;
-} __packed;
-
-struct wmi_ftm_cmd {
-	u32 tlv_header;
-	struct wmi_ftm_seg_hdr seg_hdr;
-	u8 data[];
-} __packed;
-
-struct wmi_ftm_event_msg {
-	struct wmi_ftm_seg_hdr seg_hdr;
-	u8 data[];
 } __packed;
 
 #define WMI_BEACON_TX_BUFFER_SIZE	512
@@ -5381,15 +5346,6 @@ struct target_resource_config {
 	u32 sched_params;
 	u32 twt_ap_pdev_count;
 	u32 twt_ap_sta_count;
-	u32 max_nlo_ssids;
-	u32 num_packet_filters;
-	u32 num_max_sta_vdevs;
-	u32 max_bssid_indicator;
-	u32 ul_resp_config;
-	u32 msdu_flow_override_config0;
-	u32 msdu_flow_override_config1;
-	u32 flags2;
-	u32 host_service_flags;
 };
 
 enum wmi_debug_log_param {
@@ -6010,104 +5966,6 @@ enum wmi_sta_keepalive_method {
 #define WMI_STA_KEEPALIVE_INTERVAL_DEFAULT	30
 #define WMI_STA_KEEPALIVE_INTERVAL_DISABLE	0
 
-#define UNIT_TEST_MAX_NUM_ARGS    8
-
-struct unit_test_cmd {
-	u32 vdev_id;
-	u32 module_id;
-	u32 num_args;
-	u32 args[UNIT_TEST_MAX_NUM_ARGS];
-};
-
-struct wmi_unit_test_cmd_fixed_param {
-	u32 tlv_header;
-	u32 vdev_id;
-	u32 module_id;
-	u32 num_args;
-	u32 diag_token;
-	/**
-	 * TLV (tag length value) parameters follow the wmi_unit_test_cmd_fixed_param
-	 * structure. The TLV's are:
-	 *     u32 args[];
-	 */
-} __packed;
-
-enum wmi_coex_config_type {
-    WMI_COEX_CONFIG_PAGE_P2P_TDM        =  1,
-    WMI_COEX_CONFIG_PAGE_STA_TDM        =  2,
-    WMI_COEX_CONFIG_PAGE_SAP_TDM        =  3,
-    WMI_COEX_CONFIG_DURING_WLAN_CONN    =  4,
-    WMI_COEX_CONFIG_BTC_ENABLE          =  5,
-    WMI_COEX_CONFIG_COEX_DBG            =  6,
-    WMI_COEX_CONFIG_PAGE_P2P_STA_TDM    =  7,
-    WMI_COEX_CONFIG_INQUIRY_P2P_TDM     =  8,
-    WMI_COEX_CONFIG_INQUIRY_STA_TDM     =  9,
-    WMI_COEX_CONFIG_INQUIRY_SAP_TDM     = 10,
-    WMI_COEX_CONFIG_INQUIRY_P2P_STA_TDM = 11,
-    WMI_COEX_CONFIG_TX_POWER            = 12,
-    WMI_COEX_CONFIG_PTA_CONFIG          = 13,
-    WMI_COEX_CONFIG_AP_TDM              = 14,
-    WMI_COEX_CONFIG_WLAN_SCAN_PRIORITY  = 15,
-    WMI_COEX_CONFIG_WLAN_PKT_PRIORITY   = 16,
-    WMI_COEX_CONFIG_PTA_INTERFACE       = 17,
-    WMI_COEX_CONFIG_BTC_DUTYCYCLE       = 18,
-    WMI_COEX_CONFIG_HANDOVER_RSSI       = 19,
-    WMI_COEX_CONFIG_PTA_BT_INFO         = 20,
-    WMI_COEX_CONFIG_SINK_WLAN_TDM       = 21,
-    WMI_COEX_CONFIG_COEX_ENABLE_MCC_TDM = 22,
-    WMI_COEX_CONFIG_LOWRSSI_A2DPOPP_TDM = 23,
-    WMI_COEX_CONFIG_BTC_MODE            = 24,
-    WMI_COEX_CONFIG_ANTENNA_ISOLATION   = 25,
-    WMI_COEX_CONFIG_BT_LOW_RSSI_THRESHOLD = 26,
-    WMI_COEX_CONFIG_BT_INTERFERENCE_LEVEL = 27,
-    WMI_COEX_CONFIG_WLAN_OVER_ZBLOW        = 28,
-    WMI_COEX_CONFIG_WLAN_MGMT_OVER_BT_A2DP = 29,
-    WMI_COEX_CONFIG_WLAN_CONN_OVER_LE      = 30,
-    WMI_COEX_CONFIG_LE_OVER_WLAN_TRAFFIC   = 31,
-    WMI_COEX_CONFIG_THREE_WAY_COEX_RESET   = 32,
-    WMI_COEX_CONFIG_THREE_WAY_DELAY_PARA   = 33,
-    WMI_COEX_CONFIG_THREE_WAY_COEX_START   = 34,
-    WMI_COEX_CONFIG_MPTA_HELPER_ENABLE     = 35,
-    WMI_COEX_CONFIG_MPTA_HELPER_ZIGBEE_STATE = 36,
-    WMI_COEX_CONFIG_MPTA_HELPER_INT_OCS_PARAMS = 37,
-    WMI_COEX_CONFIG_MPTA_HELPER_MON_OCS_PARAMS   = 38,
-    WMI_COEX_CONFIG_MPTA_HELPER_INT_MON_DURATION = 39,
-    WMI_COEX_CONFIG_MPTA_HELPER_ZIGBEE_CHANNEL   = 40,
-    WMI_COEX_CONFIG_MPTA_HELPER_WLAN_MUTE_DURATION   = 41,
-    WMI_COEX_CONFIG_BT_SCO_ALLOW_WLAN_2G_SCAN   = 42,
-    WMI_COEX_CONFIG_ENABLE_2ND_HARMONIC_WAR     = 43,
-    WMI_COEX_CONFIG_BTCOEX_SEPARATE_CHAIN_MODE  = 44,
-    WMI_COEX_CONFIG_ENABLE_TPUT_SHAPING = 45,
-    WMI_COEX_CONFIG_ENABLE_TXBF = 46,
-    WMI_COEX_CONFIG_FORCED_ALGO = 47,
-    WMI_COEX_CONFIG_LE_SCAN_POLICY = 48,
-};
-
-struct wmi_coex_config_params {
-	u32 vdev_id;
-	u32 config_type;
-	u32 config_arg1;
-	u32 config_arg2;
-	u32 config_arg3;
-	u32 config_arg4;
-	u32 config_arg5;
-	u32 config_arg6;
-};
-
-struct wmi_coex_config_cmd {
-	u32 tlv_header;
-	u32 vdev_id;
-	u32 config_type;
-	u32 config_arg1;
-	u32 config_arg2;
-	u32 config_arg3;
-	u32 config_arg4;
-	u32 config_arg5;
-	u32 config_arg6;
-} __packed;
-
-#define WMI_COEX_ISOLATION_ARG1_DEFAUT     30
-#define WMI_COEX_BTC_MODE_ARG1_DEFAULT	1
 int ath11k_wmi_cmd_send(struct ath11k_pdev_wmi *wmi, struct sk_buff *skb,
 			u32 cmd_id);
 struct sk_buff *ath11k_wmi_alloc_skb(struct ath11k_wmi_base *wmi_sc, u32 len);
@@ -6271,8 +6129,6 @@ int ath11k_wmi_scan_prob_req_oui(struct ath11k *ar,
 				 const u8 mac_addr[ETH_ALEN]);
 int ath11k_wmi_fw_dbglog_cfg(struct ath11k *ar, u32 *module_id_bitmap,
 			     struct ath11k_fw_dbglog *dbglog);
-int ath11k_wmi_set_unit_test(struct ath11k *ar, struct unit_test_cmd *unit_test);
-int ath11k_wmi_send_coex_config(struct ath11k *ar, struct wmi_coex_config_params *param);
 int ath11k_wmi_wow_config_pno(struct ath11k *ar, u32 vdev_id,
 			      struct wmi_pno_scan_req  *pno_scan);
 int ath11k_wmi_wow_del_pattern(struct ath11k *ar, u32 vdev_id, u32 pattern_id);
