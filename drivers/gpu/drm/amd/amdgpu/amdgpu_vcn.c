@@ -629,7 +629,6 @@ static int amdgpu_vcn_dec_get_destroy_msg(struct amdgpu_ring *ring, uint32_t han
 
 int amdgpu_vcn_dec_ring_test_ib(struct amdgpu_ring *ring, long timeout)
 {
-#if 0
 	struct dma_fence *fence = NULL;
 	struct amdgpu_ib ib;
 	long r;
@@ -658,10 +657,6 @@ int amdgpu_vcn_dec_ring_test_ib(struct amdgpu_ring *ring, long timeout)
 	dma_fence_put(fence);
 error:
 	return r;
-#else
-	DRM_INFO ("%s skip %s ring IB test\n",__FUNCTION__, ring->name);
-	return 0;
-#endif
 }
 
 static uint32_t *amdgpu_vcn_unified_ring_ib_header(struct amdgpu_ib *ib,
@@ -798,7 +793,6 @@ error:
 
 int amdgpu_vcn_enc_ring_test_ring(struct amdgpu_ring *ring)
 {
-#if 0
 	struct amdgpu_device *adev = ring->adev;
 	uint32_t rptr;
 	unsigned int i;
@@ -826,10 +820,6 @@ int amdgpu_vcn_enc_ring_test_ring(struct amdgpu_ring *ring)
 		r = -ETIMEDOUT;
 
 	return r;
-#else
-	DRM_INFO ("%s skip %s ring test\n",__FUNCTION__, ring->name);
-	return 0;
-#endif
 }
 
 static int amdgpu_vcn_enc_get_create_msg(struct amdgpu_ring *ring, uint32_t handle,
@@ -968,7 +958,6 @@ err:
 
 int amdgpu_vcn_enc_ring_test_ib(struct amdgpu_ring *ring, long timeout)
 {
-#if 0
 	struct amdgpu_device *adev = ring->adev;
 	struct dma_fence *fence = NULL;
 	struct amdgpu_ib ib;
@@ -1000,11 +989,6 @@ error:
 	dma_fence_put(fence);
 
 	return r;
-#else
-	DRM_INFO ("%s skip %s ring IB test\n",__FUNCTION__, ring->name);
-	return 0;
-
-#endif
 }
 
 int amdgpu_vcn_unified_ring_test_ib(struct amdgpu_ring *ring, long timeout)

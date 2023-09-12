@@ -1725,7 +1725,6 @@ static int vcn_v2_0_process_interrupt(struct amdgpu_device *adev,
 
 int vcn_v2_0_dec_ring_test_ring(struct amdgpu_ring *ring)
 {
-#if 0
 	struct amdgpu_device *adev = ring->adev;
 	uint32_t tmp = 0;
 	unsigned i;
@@ -1754,10 +1753,6 @@ int vcn_v2_0_dec_ring_test_ring(struct amdgpu_ring *ring)
 		r = -ETIMEDOUT;
 
 	return r;
-#else
-	DRM_INFO ("%s skip %s ring test\n",__FUNCTION__, ring->name);
-	return 0;
-#endif
 }
 
 
