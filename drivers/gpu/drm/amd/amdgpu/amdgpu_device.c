@@ -4351,10 +4351,6 @@ int amdgpu_device_suspend(struct drm_device *dev, bool fbcon)
 	if (amdgpu_sriov_vf(adev))
 		amdgpu_virt_release_full_gpu(adev, false);
 
-	r = amdgpu_dpm_set_rlc_state(adev, false);
-	if (r)
-		dev_err(adev->dev, "Failed to notify RLC to be OFF.\n");
-
 	return 0;
 }
 
