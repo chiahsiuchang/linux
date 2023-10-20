@@ -31,10 +31,6 @@ static const struct config_entry config_table[] = {
 					DMI_MATCH(DMI_SYS_VENDOR, "AMD"),
 					DMI_MATCH(DMI_PRODUCT_NAME, "Majolica-CZN"),
 				},
-				.matches = {
-					DMI_MATCH(DMI_SYS_VENDOR, "Valve"),
-					DMI_MATCH(DMI_PRODUCT_NAME, "Jupiter"),
-				},
 			},
 			{}
 		},
@@ -46,6 +42,20 @@ static const struct config_entry config_table[] = {
 			{
 				.matches = {
 					DMI_MATCH(DMI_SYS_VENDOR, "Google"),
+				},
+			},
+			{}
+		},
+	},
+	{
+		.flags = FLAG_AMD_LEGACY,
+		.device = ACP_PCI_DEV_ID,
+		.dmi_table = (const struct dmi_system_id []) {
+			{
+				.matches = {
+					DMI_MATCH(DMI_SYS_VENDOR, "Valve"),
+					DMI_MATCH(DMI_PRODUCT_NAME, "Jupiter"),
+					DMI_MATCH(DMI_PRODUCT_FAMILY, "Aerith"),
 				},
 			},
 			{}
