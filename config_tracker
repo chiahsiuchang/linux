@@ -6500,8 +6500,6 @@ CONFIG_VIDEO_ST_MIPID02=m
 CONFIG_VIDEO_THS7303=m
 # end of Miscellaneous helper chips
 
-CONFIG_VIDEO_ANX7580=m
-
 #
 # Media SPI Adapters
 #
@@ -6870,6 +6868,7 @@ CONFIG_DRM_PANEL_BRIDGE=y
 #
 # Display Interface Bridges
 #
+CONFIG_DRM_ANALOGIX_ANX7580=m
 CONFIG_DRM_ANALOGIX_ANX78XX=m
 CONFIG_DRM_ANALOGIX_DP=m
 # end of Display Interface Bridges
